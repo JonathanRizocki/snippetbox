@@ -21,14 +21,15 @@ func snippetView(w http.ResponseWriter, r *http.Request) {
 	// Extract the value of the id wildcard from the request using r.PathValue()
 	// and try to convert it to an integer. If it cannot be converted to an int
 	// or the value is less than 1, we return a 404 response
+	w.Header().Set("Content-Type", "application/json")
+
 	id, err := strconv.Atoi(r.PathValue("id"))
-	if err != nil {
+	if err != nil || id < 1 {
 		http.NotFound(w, r)
 		return
 	}
 
-	msg := fmt.Sprintf("Display a specific snipp with ID %d...", id)
-	w.Write([]byte(msg))
+	fmt.Fprintf(w, "Display a specific snippet with ID %d...", id)
 }
 
 func snippetCreate(w http.ResponseWriter, r *http.Request) {
