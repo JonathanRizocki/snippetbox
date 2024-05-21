@@ -15,6 +15,7 @@ type config struct {
 // Define an application struct to hold the app-wide dependencies for the web app.
 type application struct {
 	logger *slog.Logger
+	config config
 }
 
 func main() {
@@ -31,20 +32,11 @@ func main() {
 
 	app := &application{
 		logger: logger,
+		config: cfg,
 	}
 
-	fileServer := http.FileServer(http.Dir(cfg.staticDir))
+	logger.Info("Starting server", "addr", &cfg.addr)
 
-	mux := http.NewServeMux()
-	mux.Handle("GET /static/", http.StripPrefix("/static", fileServer))
-
-	mux.HandleFunc("GET /{$}", app.home)
-	mux.HandleFunc("GET /snippet/view/{id}", app.snippetView)
-	mux.HandleFunc("GET /snippet/create", app.snippetCreate)
-	mux.HandleFunc("POST /snippet/create", app.snippetCreatePost)
-
-	logger.Info("Starting server", "addr", cfg.addr)
-
-	err := http.ListenAndServe(cfg.addr, mux)
+	err := http.ListenAndServe(cfg.addr, app.routes())
 	logger.Error(err.Error())
 }
