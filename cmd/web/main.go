@@ -1,12 +1,14 @@
 package main
 
 import (
+	"flag"
 	"log"
 	"net/http"
 )
 
 func main() {
-	mux := http.NewServeMux()
+	addr := flag.String("addr", ":4000", "HTTP Network Address")
+	flag.Parse()
 
 	// Create a file server which serves files out of the "./ui/static" directory.
 	// Note that the path given to the http.Dr function is relative
@@ -16,6 +18,7 @@ func main() {
 	// Use the mux.Handle() function to register the file server as the handler for
 	// all URL paths that start with "/static/". For matching paths, we strip the
 	// "/static" prefix before the request reaches the file server.
+	mux := http.NewServeMux()
 	mux.Handle("GET /static/", http.StripPrefix("/static", fileServer))
 
 	mux.HandleFunc("GET /{$}", home)
@@ -23,8 +26,8 @@ func main() {
 	mux.HandleFunc("GET /snippet/create", snippetCreate)
 	mux.HandleFunc("POST /snippet/create", snippetCreatePost)
 
-	log.Print("Starting server on :4000")
+	log.Printf("Starting server on %s", *addr)
 
-	err := http.ListenAndServe(":4000", mux)
+	err := http.ListenAndServe(*addr, mux)
 	log.Fatal(err)
 }
