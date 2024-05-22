@@ -30,7 +30,6 @@ services:
       - type: bind
         source: ./
         target: /app
-        # Set this to a subpath if needed, e.g., source: ./cmd/web
     command: go run ./cmd/web/.
 
 volumes:
