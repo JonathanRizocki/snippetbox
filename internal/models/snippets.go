@@ -1,8 +1,10 @@
 package models
 
 import (
-	"database/sql"
+	"context"
 	"time"
+
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 // Model of a snippet in the database
@@ -16,12 +18,22 @@ type Snippet struct {
 
 // SnippetModel is a wrapper for a db connection pool.
 type SnippetModel struct {
-	DB *sql.DB
+	DB *pgxpool.Pool
 }
 
 // Insert will create a new Snippet record.
-func (m *SnippetModel) Insert(title, content string, expires int) (int, error) {
-	return 0, nil
+func (m *SnippetModel) Insert(title, content string, expires int) (Snippet, error) {
+	stmt := `INSERT INTO snippets (title, content, created, expires)
+	VALUES(?, ?, timezone('utc', current_timestamp), 
+	current_timestamp + interval '? days' )`
+
+	var item Snippet
+
+	err := m.DB.QueryRow(context.Background(), stmt, title, content, expires).Scan(&item)
+	if err != nil {
+		return Snippet{}, err
+	}
+	return item, err
 }
 
 // Get will retrieve a Snippet record by ID or return an error if none exists.

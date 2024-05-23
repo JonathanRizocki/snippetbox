@@ -8,6 +8,7 @@ import (
 	"os"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/jonathanrizocki/snippetbox/internal/models"
 )
 
 type config struct {
@@ -17,8 +18,9 @@ type config struct {
 
 // Define an application struct to hold the app-wide dependencies for the web app.
 type application struct {
-	logger *slog.Logger
-	config config
+	logger   *slog.Logger
+	config   config
+	snippets *models.SnippetModel
 }
 
 func main() {
@@ -43,24 +45,15 @@ func main() {
 
 	defer db.Close()
 
-	var contents string
-
-	err = db.QueryRow(context.Background(), "select title from snippets").Scan(&contents)
-	if err != nil {
-		logger.Error(err.Error())
-		os.Exit(1)
-	} else {
-		logger.Info(contents)
-	}
-
 	app := &application{
-		logger: logger,
-		config: cfg,
+		logger:   logger,
+		config:   cfg,
+		snippets: &models.SnippetModel{DB: db},
 	}
 
-	logger.Info("Starting server", "addr", &cfg.addr)
+	logger.Info("Starting server", "addr", app.config.addr)
 
-	err = http.ListenAndServe(cfg.addr, app.routes())
+	err = http.ListenAndServe(app.config.addr, app.routes())
 	logger.Error(err.Error())
 }
 
