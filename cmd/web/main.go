@@ -43,8 +43,15 @@ func main() {
 
 	defer db.Close()
 
-	query, _ := db.Query(context.Background(), "select * from snippets")
-	logger.Info("query %v", query)
+	var contents string
+
+	err = db.QueryRow(context.Background(), "select title from snippets").Scan(&contents)
+	if err != nil {
+		logger.Error(err.Error())
+		os.Exit(1)
+	} else {
+		logger.Info(contents)
+	}
 
 	app := &application{
 		logger: logger,
