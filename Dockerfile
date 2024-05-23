@@ -5,7 +5,7 @@ FROM golang:latest
 WORKDIR /app
 
 # Copy the go.mod and go.sum files first (for dependency caching)
-COPY go.mod ./
+COPY go.mod go.sum ./
 
 # Download dependencies
 RUN go mod download

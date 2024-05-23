@@ -1,10 +1,13 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"log/slog"
 	"net/http"
 	"os"
+
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type config struct {
@@ -30,6 +33,19 @@ func main() {
 		AddSource: true,
 	}))
 
+	dsn := "host=db user=postgres password=postgres dbname=postgres_db port=5432 sslmode=disable"
+
+	db, err := openDB(dsn)
+	if err != nil {
+		logger.Error(err.Error())
+		os.Exit(1)
+	}
+
+	defer db.Close()
+
+	query, _ := db.Query(context.Background(), "select * from snippets")
+	logger.Info("query %v", query)
+
 	app := &application{
 		logger: logger,
 		config: cfg,
@@ -37,6 +53,23 @@ func main() {
 
 	logger.Info("Starting server", "addr", &cfg.addr)
 
-	err := http.ListenAndServe(cfg.addr, app.routes())
+	err = http.ListenAndServe(cfg.addr, app.routes())
 	logger.Error(err.Error())
+}
+
+// The openDB() function wraps sql.Open() and returns a sql.DB connection
+// pool for a given DSN.
+func openDB(dsn string) (*pgxpool.Pool, error) {
+	dbPool, err := pgxpool.New(context.Background(), dsn)
+	if err != nil {
+		return nil, err
+	}
+
+	err = dbPool.Ping(context.Background())
+	if err != nil {
+		dbPool.Close()
+		return nil, err
+	}
+
+	return dbPool, nil
 }
