@@ -17,7 +17,7 @@ COPY . .
 RUN CGO_ENABLED=0 GOOS=linux go build -o docker-snippetbox ./cmd/web/.
 
 # Expose port 8080 to the outside world
-EXPOSE 8080
+EXPOSE 8080 
 
 # Command to run the executable
 CMD ["./docker-snippetbox"]
