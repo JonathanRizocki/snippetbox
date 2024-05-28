@@ -14,10 +14,10 @@ RUN go mod download
 COPY . .
 
 # Build the Go app
-RUN go build -o main ./cmd/web/.
+RUN CGO_ENABLED=0 GOOS=linux go build -o docker-snippetbox ./cmd/web/.
 
 # Expose port 8080 to the outside world
 EXPOSE 8080
 
 # Command to run the executable
-CMD ["./main"]
+CMD ["./docker-snippetbox"]
